@@ -19,11 +19,11 @@ const COOKIES = {
   mid: "aeWT0wABAAEsIxXdTnCzSQUzd_Yw",
   ig_nrcb: "1",
   dpr: "2.206249952316284",
-  csrftoken: "UcAKVKc6m6uKXGbcbiPhZw0Mryg0xg4R",
-  ds_user_id: "80209457261",
-  sessionid: "80209457261%3ApUkaoWmSApn4PP%3A18%3AAYhMfwtOv9b7ImWZ4CGrZrZLUU0KKdhCV7jVv5-lIA",
   wd: "489x920",
-  rur: "\"FRC\\05480209457261\\0541810420286:01fe48a07a38bd3f6affedd4bc30954dd4523400d5debfc963ea06ea765680f39fb21707\""
+  csrftoken: "z74sVzAK61AEWtTm7q2XXyY6Wqrs2Iqp",
+  ds_user_id: "80209457261",
+  sessionid: "80209457261%3A3JvME561jAntvQ%3A14%3AAYhBty-q1RXwMl-7zvATIGvlSjhhKvnvFxBECtJVyg",
+  rur: "\"FRC\\05480209457261\\0541810427551:01fe901784f897fcc35214a66653544303c73404ed8f92ff73982f9f6995635bc7726ee4\""
 };
 
 const BASE_PAYLOAD = {
@@ -31,21 +31,21 @@ const BASE_PAYLOAD = {
   __d: "www",
   __user: "0",
   __a: "1",
-  __req: "j",
-  __hs: "20588.HYP:instagram_web_pkg.2.1...0",
+  __req: "2c",
+  __hs: "20589.HYP:instagram_web_pkg.2.1...0",
   dpr: "3",
-  __ccg: "EXCELLENT",
+  __ccg: "GOOD",
   __rev: "1039617489",
-  __s: "xdjlzf:1fnyyp:znehg7",
-  __hsi: "7640249811227319939",
-  __dyn: "7xeUjG1mxu1syaxG4Vp41twpUnwgU7SbzEdF8aUco2qwJyE2OwpUe8hw2nVE4W0qa321Rw8G11wBz81s8hwGwQwoEcE7O2l0Fwqo31w9O1TwQzXwae4UaEW4Umw9a3614xm0zK5o4q3y2616zo1wEbUGdwtU662O0Lo6-bwHwKG1pg2Xwr86C1mgO1uQp6x6Ub8nxui2K7E5y4Urwfybyohw5nyE7K1Hw4XwRyo",
-  __csr: "gR2sbjYv90Ctl4T2W94iRtsghJ9E9u-SGyRR-LbV9eahbmKL-p4y4F5-uHXp9oHBDTF_QJ95DRkyFieGGFqhVQe9zV5xeQHAAjoKFez5qKgyAz5GbHoHuSHVdai9hpJz9uqnQ5GW8mrQu5GBCHCK9hEq-VbDypWVqgSiXy8ybBUaUtxa6VeiEK9xIOyF4gCKaDKcQ8AqKvuUXxa7Aq2917xWdF7xm9K2-udU8e4VGCy9pbQaAwrU29waGew0jDo2Fw0V8w5Aw085e0142wsVe0n50Tw2xEc80BO0Vo1_U0Wi7VA0yU29o3Twg80OW1C8Eig3EwSwOzObxa1ig5mayO03G9A3S0hS0wCu1lwLg4uicw4tBsg12wOkE0iuAwo8049C0dtw0r5Ejxno",
-  fb_dtsg: "NAfybnhfBBqHQFTEfB-tXsOaHN0DNSujvp-9JwRZbMBCb1dPurdf6hQ:17853828322093762:1778877855",
-  jazoest: "26314",
-  lsd: "YwOjKI6Djgey3ksrEkLoNs",
+  __s: "ky10zr:dhxpst:ymxt7u",
+  __hsi: "7640281014381134497",
+  __dyn: "7xeUjG1mxu1syaxG4Vp41twpUnwgU7SbzEdF8aUco2qwJyEiw9-1DwUx609vCwjE1EEc87m0yE462mcw5Mx62G5UswoEcE7O2l0Fwqo31w9O1lwxwQzXwae4UaEW2G0AEco4i5o2eUlwhEe88o5i0oa2-azo7u3C2u2J0bS1LyUaUbGwmk0zU8oC1Iwqo5p389oed6hEhK2O4Xxui2qi7E5y4UrwlE2xyVrx60jy7EG3a18whE984O0XEdoCU",
+  __csr: "gR2sbjYv90Dl6n2W2RRN6CTq2nFrtlylRPsJAjWDhb8KD-jloxagDKWLJABKrBDTELTQyevlib4uJ9plhVUYCi8V5x9daV4QShfGjEN3LEyAz5GRAHoHaSHVdai9paL8ahuq_QmaBHExpLhVVoyFpGWiK9h66LKKVVJ7HBF2rFKUy8yVu9wxGq4UixKjWGbyoiy3aaAh2qWDDK8LjAAqKvuUXyFClF156Cz8V2VuErztDxm9K2eiqudVpUKrxelaq8BALgGi1LwWwjE26m22ew0jDo4a1Cw0V8w5Aw085e0142wsVe0n50IyE0Eq327E0zS0TVu0vS0eAx-p08K0ym0ZU420cKwpya4A5u0Q8dEcEYyUiwkA1lyEIw0Wyp0Zw4tw83pU5m2Z0hV8Pw4rBsg12wOkE0gWwoV85Cph2x91kna011iw3no06Nq4UlS",
+  fb_dtsg: "NAfzsYqIg4NQmSd5NlPnxdR3erMq3mIe6Tnxb8ShEDG20NaF7sDyRmg:17858225011064242:1778889274",
+  jazoest: "26328",
+  lsd: "H9arqt_ckeph04BumX3fFs",
   __spin_r: "1039617489",
   __spin_b: "trunk",
-  __spin_t: "1778884281"
+  __spin_t: "1778891546"
 };
 
 const HEADERS = {
@@ -112,82 +112,7 @@ const sessions: Record<string, {
   lastMessageId: string | null;
 }> = {};
 
-// Helper: SevenTV API
-async function generateSevenTVTest() {
-  const SEVENTV_HEADERS = {
-    "Host": "seventvpainel.top",
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36",
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "X-App-Version": "3.81",
-    "Locale": "pt",
-    "Origin": "https://seventvpainel.top",
-    "Referer": "https://seventvpainel.top/",
-    "sec-ch-ua": "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
-    "sec-ch-ua-mobile": "?1",
-    "sec-ch-ua-platform": "\"Android\"",
-    "sec-fetch-site": "same-origin",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-dest": "empty",
-    "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-  };
-
-  try {
-    // 1. Get Cookies
-    const initialRes = await axios.get("https://seventvpainel.top/", {
-      headers: {
-        ...SEVENTV_HEADERS,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-      }
-    });
-    const cookies = initialRes.headers['set-cookie']?.map(c => c.split(';')[0]).join("; ") || "";
-
-    // 2. Login
-    const loginRes = await axios.post("https://seventvpainel.top/api/auth/login", {
-      captcha: "not-a-robot",
-      captchaChecked: true,
-      username: "thaysonsilvacavalcante555@gmail.com ",
-      password: "Thayson13.@",
-      twofactor_code: "",
-      twofactor_recovery_code: "",
-      twofactor_trusted_device_id: ""
-    }, {
-      headers: {
-        ...SEVENTV_HEADERS,
-        "Authorization": "Bearer null",
-        "Cookie": cookies
-      }
-    });
-
-    const token = (loginRes.data as any).token;
-    const loginCookies = loginRes.headers['set-cookie']?.map(c => c.split(';')[0]).join("; ") || cookies;
-
-    // 3. Generate Test
-    const customerRes = await axios.post("https://seventvpainel.top/api/customers", {
-      server_id: "BV4D3rLaqZ",
-      package_id: "x2YD0v1QPa",
-      trial_hours: 6,
-      connections: 1
-    }, {
-      headers: {
-        ...SEVENTV_HEADERS,
-        "Authorization": `Bearer ${token}`,
-        "Cookie": loginCookies
-      }
-    });
-
-    return (customerRes.data as any).data;
-  } catch (error: any) {
-    const errorHtml = error?.response?.data;
-    if (typeof errorHtml === 'string' && errorHtml.includes('cf-error-details')) {
-      console.error("Cloudflare detectou bot. Acesso negado.");
-    }
-    console.error("Erro SevenTV:", error?.response?.data || error.message);
-    return null;
-  }
-}
-
-// Helper: IPTV API (Legacy/Alternative)
+// Helper: IPTV API
 async function generateIPTV() {
   try {
     const response = await axios.post('https://server-synth-ai.lovable.app/api/public/s/ge238wa17n', {
@@ -209,15 +134,6 @@ async function generateIPTV() {
 }
 
 // API Routes
-app.post("/api/seventv/generate", async (req, res) => {
-  const data = await generateSevenTVTest();
-  if (data) {
-    res.json(data);
-  } else {
-    res.status(500).json({ error: "Failed to generate SevenTV test" });
-  }
-});
-
 app.post("/api/ig/search", async (req, res) => {
   const { query } = req.body;
   try {
@@ -372,10 +288,10 @@ app.post("/api/bot/check", async (req, res) => {
         });
         await igRequest.post("https://www.instagram.com/api/graphql", waitPayload);
 
-        // Call API - Switching to SevenTV
-        const iptvData = await generateSevenTVTest();
+        // Call API
+        const iptvData = await generateIPTV();
         if (iptvData) {
-          const finalMsg = `--- Teste SevenTV ---\nUsuário: ${iptvData.username}\nSenha: ${iptvData.password}\nM3U: ${iptvData.m3u_url}\n\nVálido até: ${new Date(iptvData.expires_at).toLocaleString('pt-BR')}\n\nSessão finalizada.`;
+          const finalMsg = `--- Cliente #1 ---\nUsuário: ${iptvData.username}\nSenha: ${iptvData.password}\nLink M3U: ${iptvData.m3u_url}\n\nSessão finalizada com sucesso.`;
           
           const finalPayload = new URLSearchParams({
             ...BASE_PAYLOAD,

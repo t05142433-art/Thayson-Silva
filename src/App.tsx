@@ -16,22 +16,12 @@ interface BotSession {
   threadId: string | null;
 }
 
-interface SevenTVData {
-  username: string;
-  password: string;
-  m3u_url: string;
-  expires_at: string;
-  package: string;
-}
-
 export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<IGUser[]>([]);
   const [activeSession, setActiveSession] = useState<BotSession | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
-  const [isGeneratingManual, setIsGeneratingManual] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState<SevenTVData | null>(null);
   const pollInterval = useRef<NodeJS.Timeout | null>(null);
 
   const addLog = (msg: string) => {
@@ -81,22 +71,6 @@ export default function App() {
     }
   };
 
-  const generateManualTest = async () => {
-    setIsGeneratingManual(true);
-    addLog("Iniciando geração manual de teste SevenTV...");
-    try {
-      const res = await fetch("/api/seventv/generate", { method: "POST" });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setLastGenerated(data);
-      addLog("✅ Teste SevenTV gerado com sucesso!");
-    } catch (e) {
-      addLog("❌ Erro ao gerar teste SevenTV.");
-    } finally {
-      setIsGeneratingManual(false);
-    }
-  };
-
   useEffect(() => {
     if (activeSession && activeSession.state !== 'completed' && activeSession.state !== 'failed') {
       pollInterval.current = setInterval(async () => {
@@ -140,53 +114,15 @@ export default function App() {
         
         {/* Main Control Panel */}
         <div className="lg:col-span-12">
-          <div className="flex items-center justify-between gap-3 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-indigo-600 rounded-xl">
-                <Terminal className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">SISTEMA AUTOMATIZADO SEVENTV</h1>
-                <p className="text-zinc-400">Automação real via Instagram e Geração de Testes SevenTV</p>
-              </div>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 bg-indigo-600 rounded-xl">
+              <Terminal className="w-8 h-8 text-white" />
             </div>
-            
-            <button
-               onClick={generateManualTest}
-               disabled={isGeneratingManual}
-               className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-100 px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-medium"
-            >
-              {isGeneratingManual ? <Loader2 className="w-5 h-5 animate-spin text-indigo-500" /> : <Package className="w-5 h-5 text-indigo-500" />}
-              Geração Manual SevenTV
-            </button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">SISTEMA AUTOMATIZADO IPTV IG</h1>
+              <p className="text-zinc-400">Automação real via Instagram Direct</p>
+            </div>
           </div>
-
-          {lastGenerated && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mb-8 p-6 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6"
-            >
-              <div>
-                <div className="text-xs text-indigo-400 font-bold uppercase mb-1">Usuário</div>
-                <div className="text-xl font-mono text-white">{lastGenerated.username}</div>
-              </div>
-              <div>
-                <div className="text-xs text-indigo-400 font-bold uppercase mb-1">Senha</div>
-                <div className="text-xl font-mono text-white">{lastGenerated.password}</div>
-              </div>
-              <div>
-                <div className="text-xs text-indigo-400 font-bold uppercase mb-1">Validade</div>
-                <div className="text-sm text-zinc-300">{new Date(lastGenerated.expires_at).toLocaleString('pt-BR')}</div>
-              </div>
-              <div className="md:col-span-3 pt-4 border-t border-indigo-500/10">
-                <div className="text-xs text-indigo-400 font-bold uppercase mb-1">Link M3U</div>
-                <div className="text-xs font-mono text-indigo-300 truncate bg-black/40 p-2 rounded border border-indigo-500/10">
-                  {lastGenerated.m3u_url}
-                </div>
-              </div>
-            </motion.div>
-          )}
         </div>
 
         {/* Search Section */}
@@ -293,7 +229,7 @@ export default function App() {
                    { label: 'Follow', step: 'sent_initial', icon: User },
                    { label: 'Oi, você?', step: 'sent_initial', icon: Send },
                    { label: 'Deseja Teste?', step: 'sent_ask_test', icon: Package },
-                   { label: 'SevenTV API', step: 'completed', icon: Key },
+                   { label: 'Gerar/Enviar', step: 'completed', icon: Key },
                  ].map((item, idx) => {
                    const steps = ['idle', 'sent_initial', 'sent_ask_test', 'generating', 'completed'];
                    const currentIdx = steps.indexOf(activeSession.state);
@@ -326,8 +262,8 @@ export default function App() {
                {activeSession.state === 'generating' && (
                  <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-xl p-8 text-center mb-6">
                     <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-indigo-400 animate-pulse">Gerando Credenciais no Painel SevenTV...</h3>
-                    <p className="text-zinc-500 text-sm mt-2">Autenticando e requisitando teste via API oficial</p>
+                    <h3 className="text-lg font-bold text-indigo-400 animate-pulse">Gerando Credenciais no Painel...</h3>
+                    <p className="text-zinc-500 text-sm mt-2">Aguardando retorno do servidor IPTV FiveTV</p>
                  </div>
                )}
 
@@ -335,7 +271,7 @@ export default function App() {
                  <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-6 flex items-start gap-4 mb-6">
                     <CheckCircle2 className="w-8 h-8 text-green-500 shrink-0" />
                     <div>
-                      <h3 className="font-bold text-green-500 mb-1">Teste SevenTV Enviado!</h3>
+                      <h3 className="font-bold text-green-500 mb-1">Teste IPTV Enviado!</h3>
                       <p className="text-zinc-400 text-sm">O cliente recebeu as credenciais e o link M3U no Direct.</p>
                       <button className="mt-4 flex items-center gap-2 text-xs font-bold text-white bg-green-600 px-4 py-2 rounded-lg">
                         <ExternalLink className="w-4 h-4" /> Ver Conversa no Insta

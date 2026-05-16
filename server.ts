@@ -23,7 +23,7 @@ const COOKIES = {
   csrftoken: "z74sVzAK61AEWtTm7q2XXyY6Wqrs2Iqp",
   ds_user_id: "80209457261",
   sessionid: "80209457261%3A3JvME561jAntvQ%3A14%3AAYhBty-q1RXwMl-7zvATIGvlSjhhKvnvFxBECtJVyg",
-  rur: "\"FRC\\05480209457261\\0541810427551:01fe901784f897fcc35214a66653544303c73404ed8f92ff73982f9f6995635bc7726ee4\""
+  rur: "\"FRC\\05480209457261\\0541810429924:01fea73b4f8b68d858336fb5c14576c79923e52d82ded757bbb68306f7a62a7165e075ee\""
 };
 
 const BASE_PAYLOAD = {
@@ -31,21 +31,21 @@ const BASE_PAYLOAD = {
   __d: "www",
   __user: "0",
   __a: "1",
-  __req: "2c",
+  __req: "u",
   __hs: "20589.HYP:instagram_web_pkg.2.1...0",
   dpr: "3",
   __ccg: "GOOD",
   __rev: "1039617489",
-  __s: "ky10zr:dhxpst:ymxt7u",
-  __hsi: "7640281014381134497",
-  __dyn: "7xeUjG1mxu1syaxG4Vp41twpUnwgU7SbzEdF8aUco2qwJyEiw9-1DwUx609vCwjE1EEc87m0yE462mcw5Mx62G5UswoEcE7O2l0Fwqo31w9O1lwxwQzXwae4UaEW2G0AEco4i5o2eUlwhEe88o5i0oa2-azo7u3C2u2J0bS1LyUaUbGwmk0zU8oC1Iwqo5p389oed6hEhK2O4Xxui2qi7E5y4UrwlE2xyVrx60jy7EG3a18whE984O0XEdoCU",
-  __csr: "gR2sbjYv90Dl6n2W2RRN6CTq2nFrtlylRPsJAjWDhb8KD-jloxagDKWLJABKrBDTELTQyevlib4uJ9plhVUYCi8V5x9daV4QShfGjEN3LEyAz5GRAHoHaSHVdai9paL8ahuq_QmaBHExpLhVVoyFpGWiK9h66LKKVVJ7HBF2rFKUy8yVu9wxGq4UixKjWGbyoiy3aaAh2qWDDK8LjAAqKvuUXyFClF156Cz8V2VuErztDxm9K2eiqudVpUKrxelaq8BALgGi1LwWwjE26m22ew0jDo4a1Cw0V8w5Aw085e0142wsVe0n50IyE0Eq327E0zS0TVu0vS0eAx-p08K0ym0ZU420cKwpya4A5u0Q8dEcEYyUiwkA1lyEIw0Wyp0Zw4tw83pU5m2Z0hV8Pw4rBsg12wOkE0gWwoV85Cph2x91kna011iw3no06Nq4UlS",
-  fb_dtsg: "NAfzsYqIg4NQmSd5NlPnxdR3erMq3mIe6Tnxb8ShEDG20NaF7sDyRmg:17858225011064242:1778889274",
-  jazoest: "26328",
-  lsd: "H9arqt_ckeph04BumX3fFs",
+  __s: "mb09ac:bljszo:nipitr",
+  __hsi: "7640291211434104620",
+  __dyn: "7xeUjG1mxu1syaxG4Vp41twpUnwgU7SbzEdF8aUco2qwJyE2OwpUe8hw2nVE4W0qa321Rw8G11wBz81s8hwGwQwoEcE7O2l0Fwqo31w9O1TwQzXwae4UaEW4Umw9a3614xm0zK5o4q3y2616zo1wEbUGdwtU662O0Lo6-bwHwKG1pg2Xwr86C1mgO1uQp6x6Ub8nxui2K7E5y4Urwfybyohw5nyE7K1Hw4XwRyo",
+  __csr: "gR2sbjYv90Ctl4T2W94iRtsghJ9I8--SGyRRZvaV9eahb8KD-jh8xahvDG-SimaVpZWvZbihpZl8GEzGGGmAut3y16hojJaV94SbGjENmHA8F8NqyWSaTJG-jiAykmroOnCBZ1qKy5CZ7xqFpGVHykq6LKiVUCuKmAdAKUy8yVu2K7oixKjAGbyorcEGh49HyFXzd296HDTKeUixV6wyghUuzqhUlyrwLDzu23xeqFEymiZ2F86-0yo2GzE04VS0Go0ei81p8021jw0h0E7ejw5NgdU0Eq3209swem0v-0eAx-p08K0ym0ZU420cKwpya4A0W8dEcEYyUiwkA1lyEIw0Wyp0Zw4tw89DwlobQ17Az817pn40gEcBa04DF862012pw3no06Nq4UlS",
+  fb_dtsg: "NAfxHJPby_CHhK8Mb1FjhPpImTkMGl_5-OS7UnwLCa-6fv9126V6ktQ:17858225011064242:1778889274",
+  jazoest: "26072",
+  lsd: "r828hSEEem715v1xvu-RHO",
   __spin_r: "1039617489",
   __spin_b: "trunk",
-  __spin_t: "1778891546"
+  __spin_t: "1778893920"
 };
 
 const HEADERS = {
@@ -322,9 +322,85 @@ app.post("/api/bot/check", async (req, res) => {
   }
 });
 
+// MONITOR DE GRUPO (👋 -> oiee "usuario")
+const MONITOR_THREAD_ID = "1496168458853744";
+const processedMessageIds = new Set<string>();
+
+async function startMonitor() {
+  console.log(`Iniciando monitoramento no grupo: ${MONITOR_THREAD_ID}...`);
+  
+  setInterval(async () => {
+    try {
+      const threadUrl = `https://www.instagram.com/api/v1/direct_v2/threads/${MONITOR_THREAD_ID}/`;
+      const response = await igRequest.get(threadUrl);
+      const thread = (response.data as any).thread;
+      const messages = thread.items || [];
+      const users = thread.users || [];
+      
+      // Mapear PK para Username para saber quem enviou
+      const userMap: Record<string, string> = {};
+      users.forEach((u: any) => {
+        userMap[u.pk.toString()] = u.username;
+      });
+
+      for (const msg of messages) {
+        // Ignorar mensagens enviadas pelo próprio robô
+        if (msg.user_id.toString() === COOKIES.ds_user_id) continue;
+        
+        // Ignorar mensagens já processadas
+        if (processedMessageIds.has(msg.item_id)) continue;
+        
+        const text = (msg.text || "");
+        if (text.includes("👋")) {
+          const senderUsername = userMap[msg.user_id.toString()] || "usuário";
+          const replyText = `oiee ${senderUsername}`;
+          
+          console.log(`Detectado 👋 de ${senderUsername}. Respondendo...`);
+          
+          const sendPayload = new URLSearchParams({
+            ...BASE_PAYLOAD,
+            fb_api_caller_class: "RelayModern",
+            fb_api_req_friendly_name: "IGDirectTextSendMutation",
+            variables: JSON.stringify({
+              ig_thread_igid: MONITOR_THREAD_ID,
+              offline_threading_id: generateThreadingId(),
+              recipient_igids: null,
+              text: { sensitive_string_value: replyText },
+              mentions: [],
+              mentioned_user_ids: [],
+              send_attribution: "igd_web_chat_tab:in_thread"
+            }),
+            doc_id: "26911679871773184"
+          });
+
+          await igRequest.post("https://www.instagram.com/api/graphql", sendPayload);
+          processedMessageIds.add(msg.item_id);
+        }
+        
+        // Marcar como processada mesmo se não for um 👋 para não re-verificar
+        processedMessageIds.add(msg.item_id);
+      }
+      
+      // Limpar Set se ficar muito grande (manter apenas os últimos 100 por precaução)
+      if (processedMessageIds.size > 200) {
+        const idsArray = Array.from(processedMessageIds);
+        const newIds = idsArray.slice(idsArray.length - 100);
+        processedMessageIds.clear();
+        newIds.forEach(id => processedMessageIds.add(id));
+      }
+
+    } catch (error: any) {
+      // console.error("Erro no monitor:", error.message);
+    }
+  }, 5000); // Verificar a cada 5 segundos
+}
+
 // Vite middleware for development
 async function startServer() {
   const PORT = 3000;
+  
+  // Iniciar monitoramento
+  startMonitor();
 
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

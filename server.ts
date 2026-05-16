@@ -3,15 +3,31 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import axios from "axios";
 import { fileURLToPath } from "url";
+import { createClient } from '@supabase/supabase-js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Environment detection for __dirname
+const __filename = typeof process !== 'undefined' && (process as any).argv ? fileURLToPath(import.meta.url) : '';
+const __dirname = typeof process !== 'undefined' && (process as any).argv ? path.dirname(__filename) : '';
+
+// Supabase Client Helper
+let supabaseClient: any = null;
+function getSupabase() {
+  if (!supabaseClient) {
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn("Supabase credentials missing. Some features may not work.");
+    }
+    supabaseClient = createClient(supabaseUrl, supabaseKey);
+  }
+  return supabaseClient;
+}
 
 const app = express();
 app.use(express.json());
 
-// CONFIGURAÇÕES INSTAGRAM (Exatamente como nos logs REAIS fornecidos)
-const COOKIES = {
+// CONFIGURAÇÕES PADRÃO (Fallback se não houver no Banco)
+const DEFAULT_COOKIES = {
   datr: "vozQaZ9FTfSuYSDOh8c3S56v",
   ig_did: "0A7CD33E-D3EC-401D-9761-77259A2493C3",
   ps_l: "1",
@@ -26,7 +42,7 @@ const COOKIES = {
   rur: "\"FRC\\05480209457261\\0541810429924:01fea73b4f8b68d858336fb5c14576c79923e52d82ded757bbb68306f7a62a7165e075ee\""
 };
 
-const BASE_PAYLOAD = {
+const DEFAULT_PAYLOAD = {
   av: "17841480197836182",
   __d: "www",
   __user: "0",
@@ -39,7 +55,6 @@ const BASE_PAYLOAD = {
   __s: "mb09ac:bljszo:nipitr",
   __hsi: "7640291211434104620",
   __dyn: "7xeUjG1mxu1syaxG4Vp41twpUnwgU7SbzEdF8aUco2qwJyE2OwpUe8hw2nVE4W0qa321Rw8G11wBz81s8hwGwQwoEcE7O2l0Fwqo31w9O1TwQzXwae4UaEW4Umw9a3614xm0zK5o4q3y2616zo1wEbUGdwtU662O0Lo6-bwHwKG1pg2Xwr86C1mgO1uQp6x6Ub8nxui2K7E5y4Urwfybyohw5nyE7K1Hw4XwRyo",
-  __csr: "gR2sbjYv90Ctl4T2W94iRtsghJ9I8--SGyRRZvaV9eahb8KD-jh8xahvDG-SimaVpZWvZbihpZl8GEzGGGmAut3y16hojJaV94SbGjENmHA8F8NqyWSaTJG-jiAykmroOnCBZ1qKy5CZ7xqFpGVHykq6LKiVUCuKmAdAKUy8yVu2K7oixKjAGbyorcEGh49HyFXzd296HDTKeUixV6wyghUuzqhUlyrwLDzu23xeqFEymiZ2F86-0yo2GzE04VS0Go0ei81p8021jw0h0E7ejw5NgdU0Eq3209swem0v-0eAx-p08K0ym0ZU420cKwpya4A0W8dEcEYyUiwkA1lyEIw0Wyp0Zw4tw89DwlobQ17Az817pn40gEcBa04DF862012pw3no06Nq4UlS",
   fb_dtsg: "NAfxHJPby_CHhK8Mb1FjhPpImTkMGl_5-OS7UnwLCa-6fv9126V6ktQ:17858225011064242:1778889274",
   jazoest: "26072",
   lsd: "r828hSEEem715v1xvu-RHO",
@@ -48,11 +63,9 @@ const BASE_PAYLOAD = {
   __spin_t: "1778893920"
 };
 
-const HEADERS = {
+const HEADERS_TEMPLATE = {
   "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36",
-  "x-csrftoken": COOKIES.csrftoken,
   "x-ig-app-id": "1217981644879628",
-  "x-fb-lsd": BASE_PAYLOAD.lsd,
   "origin": "https://www.instagram.com",
   "referer": "https://www.instagram.com/",
   "accept": "*/*",
@@ -70,21 +83,35 @@ const HEADERS = {
   "x-asbd-id": "359341"
 };
 
-const cookieString = Object.entries(COOKIES).map(([k, v]) => `${k}=${v}`).join("; ");
+// Stateless IG Instance helper
+async function getIGInstance() {
+  const supabase = getSupabase();
+  const { data: configRows } = await supabase.from('ig_config').select('*');
+  const cookies = configRows?.find(r => r.key === 'cookies')?.value || DEFAULT_COOKIES;
+  const payload = configRows?.find(r => r.key === 'payload')?.value || DEFAULT_PAYLOAD;
 
-const igRequest = axios.create({
-  headers: {
-    ...HEADERS,
-    "cookie": cookieString
-  }
-});
+  const cookieString = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join("; ");
+  
+  return {
+    cookies,
+    payload,
+    request: axios.create({
+      headers: {
+        ...HEADERS_TEMPLATE,
+        "x-csrftoken": cookies.csrftoken,
+        "x-fb-lsd": payload.lsd,
+        "cookie": cookieString
+      }
+    })
+  };
+}
 
 // Helper: 19-digit threading ID
 function generateThreadingId() {
   return Array.from({ length: 19 }, () => Math.floor(Math.random() * 10)).join("");
 }
 
-// Image Proxy to avoid CORS/Referer issues
+// Image Proxy (Necessary even in Edge, but can be a simple function)
 app.get("/api/proxy/image", async (req, res) => {
   const url = req.query.url as string;
   if (!url) return res.status(400).send("No URL");
@@ -92,7 +119,7 @@ app.get("/api/proxy/image", async (req, res) => {
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
-        'user-agent': HEADERS["user-agent"],
+        'user-agent': HEADERS_TEMPLATE["user-agent"],
         'referer': 'https://www.instagram.com/'
       }
     });
@@ -103,18 +130,29 @@ app.get("/api/proxy/image", async (req, res) => {
   }
 });
 
-// In-memory state for bot sessions
-const sessions: Record<string, {
-  userId: string;
-  username: string;
-  threadId: string | null;
-  state: 'idle' | 'sent_initial' | 'sent_ask_test' | 'generating' | 'completed' | 'failed';
-  lastMessageId: string | null;
-}> = {};
-
 // Helper: IPTV API
+async function performSynthLogin() {
+  try {
+    await axios.post('https://server-synth-ai.lovable.app/api/public/s/ge238wa17n', {
+      "action": "Login",
+      "captcha": "not-a-robot",
+      "captchaChecked": true,
+      "username": "thaysonsilvacavalcante555@gmail.com ",
+      "password": "Thayson13.@",
+      "twofactor_code": "",
+      "twofactor_recovery_code": "",
+      "twofactor_trusted_device_id": ""
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error("Erro no Synth Login:", error);
+  }
+}
+
 async function generateIPTV() {
   try {
+    await performSynthLogin();
     const response = await axios.post('https://server-synth-ai.lovable.app/api/public/s/ge238wa17n', {
       action: "criar_cliente",
       server_id: "BV4D3rLaqZ",
@@ -133,12 +171,13 @@ async function generateIPTV() {
   }
 }
 
-// API Routes
+// API Routes (Functions)
 app.post("/api/ig/search", async (req, res) => {
   const { query } = req.body;
   try {
-    const payload = new URLSearchParams({
-      ...BASE_PAYLOAD,
+    const { payload, request } = await getIGInstance();
+    const searchPayload = new URLSearchParams({
+      ...payload,
       fb_api_caller_class: "RelayModern",
       fb_api_req_friendly_name: "PolarisSearchBoxRefetchableQuery",
       variables: JSON.stringify({
@@ -155,7 +194,7 @@ app.post("/api/ig/search", async (req, res) => {
       doc_id: "35248861834757183"
     });
 
-    const response = await igRequest.post("https://www.instagram.com/graphql/query", payload);
+    const response = await request.post("https://www.instagram.com/graphql/query", searchPayload);
     const users = (response.data as any).data?.xdt_api__v1__fbsearch__topsearch_connection?.users || [];
     res.json(users.map((u: any) => ({
       username: u.user.username,
@@ -171,15 +210,17 @@ app.post("/api/ig/search", async (req, res) => {
 app.post("/api/ig/start", async (req, res) => {
   const { userId, username } = req.body;
   try {
+    const { payload, request } = await getIGInstance();
+
     // 1. Follow User
     const followUrl = `https://www.instagram.com/api/v1/friendships/create/${userId}/`;
-    await igRequest.post(followUrl, new URLSearchParams({
+    await request.post(followUrl, new URLSearchParams({
       container_module: "profile",
       nav_chain: "PolarisProfileRoot:profile:1:unexpected"
     }));
 
     // 2. Create Thread
-    const threadResponse = await igRequest.post("https://www.instagram.com/api/v1/direct_v2/create_group_thread/", new URLSearchParams({
+    const threadResponse = await request.post("https://www.instagram.com/api/v1/direct_v2/create_group_thread/", new URLSearchParams({
       recipient_users: JSON.stringify([userId.toString()]),
       jazoest: "22813"
     }));
@@ -187,9 +228,11 @@ app.post("/api/ig/start", async (req, res) => {
     const threadId = (threadResponse.data as any).thread_v2_id || (threadResponse.data as any).thread_id;
     
     // 3. Send Initial Message
-    const initialText = `Oi, você ${username}?`;
+    const initialText = `Olá @${username}! 👋\n\n` +
+      `Espero que sua semana esteja sendo fantástica! Vi que você tem interesse em conteúdos de alta qualidade e gostaria de te apresentar algo exclusivo do *Sindicato do Streaming*.\n\n` +
+      `Você gostaria de falar sobre as melhores opções de entretenimento digital hoje? Posso te mostrar como ter acesso a tudo em um só lugar. 📺✨`;
     const sendPayload = new URLSearchParams({
-      ...BASE_PAYLOAD,
+      ...payload,
       fb_api_caller_class: "RelayModern",
       fb_api_req_friendly_name: "IGDirectTextSendMutation",
       variables: JSON.stringify({
@@ -204,15 +247,18 @@ app.post("/api/ig/start", async (req, res) => {
       doc_id: "26911679871773184"
     });
 
-    await igRequest.post("https://www.instagram.com/api/graphql", sendPayload);
+    await request.post("https://www.instagram.com/api/graphql", sendPayload);
 
-    sessions[userId] = {
-      userId,
+    // Save session to Supabase
+    const supabase = getSupabase();
+    await supabase.from('bot_sessions').upsert({
+      userId: userId.toString(),
       username,
-      threadId,
+      threadId: threadId.toString(),
       state: 'sent_initial',
-      lastMessageId: null
-    };
+      lastMessageId: null,
+      updated_at: new Date().toISOString()
+    });
 
     res.json({ status: "ok", threadId });
   } catch (error) {
@@ -221,36 +267,52 @@ app.post("/api/ig/start", async (req, res) => {
   }
 });
 
-app.get("/api/bot/status/:userId", (req, res) => {
-  const session = sessions[req.params.userId];
+app.get("/api/bot/status/:userId", async (req, res) => {
+  const supabase = getSupabase();
+  const { data: session } = await supabase
+    .from('bot_sessions')
+    .select('*')
+    .eq('userId', req.params.userId)
+    .single();
+    
   if (!session) return res.status(404).json({ error: "Session not found" });
   res.json(session);
 });
 
 app.post("/api/bot/check", async (req, res) => {
   const { userId } = req.body;
-  const session = sessions[userId];
+  const supabase = getSupabase();
+  const { data: session } = await supabase
+    .from('bot_sessions')
+    .select('*')
+    .eq('userId', userId.toString())
+    .single();
+
   if (!session) return res.status(404).json({ error: "Session not found" });
 
   try {
+    const { cookies, payload, request } = await getIGInstance();
+    await performSynthLogin();
+
     // Fetch latest messages from thread
     const threadUrl = `https://www.instagram.com/api/v1/direct_v2/threads/${session.threadId}/`;
-    const response = await igRequest.get(threadUrl);
+    const response = await request.get(threadUrl);
     const messages = (response.data as any).thread.items || [];
     
     // Last message from the OTHER user
-    const lastUserMessage = messages.find((m: any) => m.user_id !== COOKIES.ds_user_id);
+    const lastUserMessage = messages.find((m: any) => m.user_id.toString() !== cookies.ds_user_id.toString());
     
     if (lastUserMessage && lastUserMessage.item_id !== session.lastMessageId) {
       const text = (lastUserMessage.text || "").toLowerCase().trim();
       session.lastMessageId = lastUserMessage.item_id;
 
       if (session.state === 'sent_initial' && text.includes('sim')) {
-        // Step 2: Ask for IPTV test
         session.state = 'sent_ask_test';
-        const msg = "Você quer gerar teste IPTV de 6 horas?";
+        const msg = `Excelente escolha! 🚀\n\n` +
+          `Para você sentir a qualidade do nosso servidor na prática, eu posso liberar um *Teste VIP de 6 horas* agora mesmo para você. Totalmente Grátis!\n\n` +
+          `Deseja que eu gere suas credenciais de acesso agora? (Responda "SIM" para gerar)`;
         const sendPayload = new URLSearchParams({
-          ...BASE_PAYLOAD,
+          ...payload,
           fb_api_caller_class: "RelayModern",
           fb_api_req_friendly_name: "IGDirectTextSendMutation",
           variables: JSON.stringify({
@@ -264,15 +326,14 @@ app.post("/api/bot/check", async (req, res) => {
           }),
           doc_id: "26911679871773184"
         });
-        await igRequest.post("https://www.instagram.com/api/graphql", sendPayload);
+        await request.post("https://www.instagram.com/api/graphql", sendPayload);
       } else if (session.state === 'sent_ask_test' && text.includes('sim')) {
-        // Step 3: Generate IPTV
         session.state = 'generating';
         
-        // Notify user
-        const waitingMsg = "Ok, aguarde um momento. Gerando seu teste IPTV...";
+        const waitingMsg = `⚡ *SOLICITAÇÃO RECEBIDA* ⚡\n\n` +
+          `Estou conectando ao nosso servidor seguro para gerar sua linha exclusiva. Por favor, aguarde alguns segundos enquanto preparo tudo para você... ⏳`;
         const waitPayload = new URLSearchParams({
-          ...BASE_PAYLOAD,
+          ...payload,
           fb_api_caller_class: "RelayModern",
           fb_api_req_friendly_name: "IGDirectTextSendMutation",
           variables: JSON.stringify({
@@ -286,15 +347,20 @@ app.post("/api/bot/check", async (req, res) => {
           }),
           doc_id: "26911679871773184"
         });
-        await igRequest.post("https://www.instagram.com/api/graphql", waitPayload);
+        await request.post("https://www.instagram.com/api/graphql", waitPayload);
 
-        // Call API
         const iptvData = await generateIPTV();
         if (iptvData) {
-          const finalMsg = `--- Cliente #1 ---\nUsuário: ${iptvData.username}\nSenha: ${iptvData.password}\nLink M3U: ${iptvData.m3u_url}\n\nSessão finalizada com sucesso.`;
+          const finalMsg = `💎 *CRIAÇÃO CONCLUÍDA COM SUCESSO!* 💎\n\n` +
+            `Aqui estão seus dados de acesso para o teste de 6 horas na maior estabilidade do Brasil:\n\n` +
+            `👤 *Usuário:* ${iptvData.username}\n` +
+            `🔑 *Senha:* ${iptvData.password}\n` +
+            `🌐 *Link M3U:* ${iptvData.m3u_url}\n\n` +
+            `💡 *Dica:* Utilize o aplicativo *IPTV Smarters* ou similar para a melhor experiência. Se precisar de ajuda na configuração, é só me chamar!\n\n` +
+            `Sessão de entrega finalizada. Aproveite! 🍿🥤`;
           
           const finalPayload = new URLSearchParams({
-            ...BASE_PAYLOAD,
+            ...payload,
             fb_api_caller_class: "RelayModern",
             fb_api_req_friendly_name: "IGDirectTextSendMutation",
             variables: JSON.stringify({
@@ -308,12 +374,18 @@ app.post("/api/bot/check", async (req, res) => {
             }),
             doc_id: "26911679871773184"
           });
-          await igRequest.post("https://www.instagram.com/api/graphql", finalPayload);
+          await request.post("https://www.instagram.com/api/graphql", finalPayload);
           session.state = 'completed';
         } else {
           session.state = 'failed';
         }
       }
+      // Sync back to Supabase
+      const supabase = getSupabase();
+      await supabase.from('bot_sessions').upsert({
+        ...session,
+        updated_at: new Date().toISOString()
+      });
     }
     res.json(session);
   } catch (error) {
@@ -322,86 +394,95 @@ app.post("/api/bot/check", async (req, res) => {
   }
 });
 
-// MONITOR DE GRUPO (👋 -> oiee "usuario")
+app.post("/api/admin/update-ig", async (req, res) => {
+  const { cookies, payload } = req.body;
+  const supabase = getSupabase();
+  try {
+    if (cookies) await supabase.from('ig_config').upsert({ key: 'cookies', value: cookies });
+    if (payload) await supabase.from('ig_config').upsert({ key: 'payload', value: payload });
+    res.json({ status: "success", message: "Configurações sincronizadas no Supabase!" });
+  } catch (error: any) {
+    res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+// MONITOR DE GRUPO (Stateless logic intended for Cron)
 const MONITOR_THREAD_ID = "1496168458853744";
-const processedMessageIds = new Set<string>();
 
-async function startMonitor() {
-  console.log(`Iniciando monitoramento no grupo: ${MONITOR_THREAD_ID}...`);
-  
-  setInterval(async () => {
-    try {
-      const threadUrl = `https://www.instagram.com/api/v1/direct_v2/threads/${MONITOR_THREAD_ID}/`;
-      const response = await igRequest.get(threadUrl);
-      const thread = (response.data as any).thread;
-      const messages = thread.items || [];
-      const users = thread.users || [];
+async function runMonitorOnce() {
+  try {
+    const { cookies, payload, request } = await getIGInstance();
+    const threadUrl = `https://www.instagram.com/api/v1/direct_v2/threads/${MONITOR_THREAD_ID}/`;
+    const response = await request.get(threadUrl);
+    const thread = (response.data as any).thread;
+    const messages = thread.items || [];
+    const users = thread.users || [];
+    
+    // Mapear PK para Username
+    const userMap: Record<string, string> = {};
+    users.forEach((u: any) => userMap[u.pk.toString()] = u.username);
+
+    const supabase = getSupabase();
+    for (const msg of messages) {
+      if (msg.user_id.toString() === cookies.ds_user_id.toString()) continue;
       
-      // Mapear PK para Username para saber quem enviou
-      const userMap: Record<string, string> = {};
-      users.forEach((u: any) => {
-        userMap[u.pk.toString()] = u.username;
-      });
+      // Check if already processed in Supabase
+      const { data: alreadyProcessed } = await supabase
+        .from('processed_messages')
+        .select('*')
+        .eq('item_id', msg.item_id)
+        .single();
+        
+      if (alreadyProcessed) continue;
 
-      for (const msg of messages) {
-        // Ignorar mensagens enviadas pelo próprio robô
-        if (msg.user_id.toString() === COOKIES.ds_user_id) continue;
+      const text = (msg.text || "");
+      if (text.includes("👋")) {
+        const senderUsername = userMap[msg.user_id.toString()] || "amigo(a)";
+        const replyText = `🌟 Olá, @${senderUsername}! Tudo bem com você? 🌟\n\n` +
+          `Notei que você deu um "oi" aqui no grupo! Se você estiver procurando o melhor do entretenimento com estabilidade total de sinal, você está no lugar certo! 🚀\n\n` +
+          `✨ *O que oferecemos:* ✨\n` +
+          `✅ Canais 4K/UHD\n` +
+          `✅ Filmes que acabaram de sair do cinema\n` +
+          `✅ Séries de todas as plataformas\n` +
+          `✅ Suporte 24h\n\n` +
+          `Deseja receber um teste grátis de 6 horas agora mesmo? É só me chamar no privado ou aguardar que logo entro em contato! 💎`;
         
-        // Ignorar mensagens já processadas
-        if (processedMessageIds.has(msg.item_id)) continue;
-        
-        const text = (msg.text || "");
-        if (text.includes("👋")) {
-          const senderUsername = userMap[msg.user_id.toString()] || "usuário";
-          const replyText = `oiee ${senderUsername}`;
-          
-          console.log(`Detectado 👋 de ${senderUsername}. Respondendo...`);
-          
-          const sendPayload = new URLSearchParams({
-            ...BASE_PAYLOAD,
-            fb_api_caller_class: "RelayModern",
-            fb_api_req_friendly_name: "IGDirectTextSendMutation",
-            variables: JSON.stringify({
-              ig_thread_igid: MONITOR_THREAD_ID,
-              offline_threading_id: generateThreadingId(),
-              recipient_igids: null,
-              text: { sensitive_string_value: replyText },
-              mentions: [],
-              mentioned_user_ids: [],
-              send_attribution: "igd_web_chat_tab:in_thread"
-            }),
-            doc_id: "26911679871773184"
-          });
+        const sendPayload = new URLSearchParams({
+          ...payload,
+          fb_api_caller_class: "RelayModern",
+          fb_api_req_friendly_name: "IGDirectTextSendMutation",
+          variables: JSON.stringify({
+            ig_thread_igid: MONITOR_THREAD_ID,
+            offline_threading_id: generateThreadingId(),
+            recipient_igids: null,
+            text: { sensitive_string_value: replyText },
+            mentions: [],
+            mentioned_user_ids: [],
+            send_attribution: "igd_web_chat_tab:in_thread"
+          }),
+          doc_id: "26911679871773184"
+        });
 
-          await igRequest.post("https://www.instagram.com/api/graphql", sendPayload);
-          processedMessageIds.add(msg.item_id);
-        }
-        
-        // Marcar como processada mesmo se não for um 👋 para não re-verificar
-        processedMessageIds.add(msg.item_id);
+        await request.post("https://www.instagram.com/api/graphql", sendPayload);
       }
       
-      // Limpar Set se ficar muito grande (manter apenas os últimos 100 por precaução)
-      if (processedMessageIds.size > 200) {
-        const idsArray = Array.from(processedMessageIds);
-        const newIds = idsArray.slice(idsArray.length - 100);
-        processedMessageIds.clear();
-        newIds.forEach(id => processedMessageIds.add(id));
-      }
-
-    } catch (error: any) {
-      // console.error("Erro no monitor:", error.message);
+      // Mark as processed
+      await supabase.from('processed_messages').insert({ item_id: msg.item_id });
     }
-  }, 5000); // Verificar a cada 5 segundos
+  } catch (error) {
+    // console.error("Monitor error", error);
+  }
 }
 
-// Vite middleware for development
+// In development, we still run the loop, but the logic is now stateless!
+if (process.env.NODE_ENV !== "production") {
+  setInterval(runMonitorOnce, 10000);
+}
+
+// Vite Config
 async function startServer() {
   const PORT = 3000;
   
-  // Iniciar monitoramento
-  startMonitor();
-
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -416,7 +497,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Edge-Ready Server running on port ${PORT}`);
   });
 }
 

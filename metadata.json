@@ -1,0 +1,8 @@
+{
+  "name": "SevenTV & IG Automator",
+  "description": "Sistema automatizado de prospecção e geração de testes IPTV via Instagram e integração com SevenTV Painel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
